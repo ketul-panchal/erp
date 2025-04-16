@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { PaymentMethod, PrismaClient } from "@prisma/client";
 import { emitSalesUpdate } from "./sales.controller";
+import { emitInventoryUpdate } from "./inventory.controller";
 
 const prisma = new PrismaClient();
 
@@ -184,8 +185,9 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
     });
 
     // 🔄 Emit sales update to frontend (socket.io)
+    
     emitSalesUpdate();
-
+    emitInventoryUpdate(); 
     res.status(201).json(order);
   } catch (error: any) {
     console.error("❌ Error creating POS order:", error);

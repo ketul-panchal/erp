@@ -14,11 +14,13 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Plus, Edit, Trash } from "lucide-react";
 import { toast } from "react-hot-toast";
 import CategoryForm from "./category-form";
+import Image from "next/image";
 
 interface Category {
   id: string;
   name: string;
   parentId?: string | null;
+  image?: string;
 }
 
 export default function CategoriesPage() {
@@ -115,6 +117,24 @@ export default function CategoriesPage() {
                     <TableRow key={category.id?.toString()}>
                       <TableCell>{category.id}</TableCell>
                       <TableCell>{category.name}</TableCell>
+                      <TableCell>
+                        {category.image ? (
+                          // <img
+                          //   src={`http://localhost:5000/${category.image}`}
+                          //   width={50}
+                          //   alt="Category"
+                          // />
+                          <Image
+                            src={`http://localhost:5000${category.image}`}
+                            width={50}
+                            height={50}
+                            alt="Product Image"
+                            // unoptimized
+                          />
+                        ) : (
+                          "No Image"
+                        )}
+                      </TableCell>
                       <TableCell>{category.parentId || "None"}</TableCell>
                       <TableCell>
                         <Button

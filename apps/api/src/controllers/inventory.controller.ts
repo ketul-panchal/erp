@@ -2,6 +2,34 @@ import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
+let io: any;
+
+export const initInventorySocket = (socketIo: any) => {
+  io = socketIo;
+  console.log("✅ WebSocket initialized for inventory updates");
+};
+
+// Emit inventory update
+export const emitInventoryUpdate = async () => {
+  if (!io) {
+    console.log("🚫 Inventory socket not initialized");
+    return;
+  }
+
+  const totalProducts = await prisma.product.count();
+  const lowStockProducts = await prisma.product.count({
+    where: { stock: { lt: 10 } }, // Or your stock alert threshold
+  });
+
+  const payload = {
+    totalProducts,
+    lowStockProducts,
+  };
+
+  io.emit("inventoryUpdate", payload);
+  console.log("📡 Sent real-time inventory update:", payload);
+};
+
 
 // ✅ Fetch Inventory List
 export const getInventory = async (req: Request, res: Response) => {
@@ -10,6 +38,7 @@ export const getInventory = async (req: Request, res: Response) => {
       include: { warehouse: true, supplier: true },
     });
 
+    // await emitInventoryUpdate(); 
     res.status(200).json(inventory);
   } catch (error) {
     console.error("Error fetching inventory:", error);
@@ -17,7 +46,6 @@ export const getInventory = async (req: Request, res: Response) => {
   }
 };
 
-// ✅ Add Stock Entry
 export const addStock = async (req: Request, res: Response): Promise<void> => {
   try {
     const { productId, warehouseId, stock, stockAlert } = req.body;
@@ -37,6 +65,8 @@ export const addStock = async (req: Request, res: Response): Promise<void> => {
       where: { id: productId },
       data: { stock, stockAlert, warehouseId },
     });
+
+    await emitInventoryUpdate(); 
 
     res.status(201).json(updatedProduct);
   } catch (error) {
@@ -63,7 +93,9 @@ export const updateInventory = async (req: Request, res: Response): Promise<void
         where: { id },
         data: { stock, stockAlert },
       });
-  
+
+      await emitInventoryUpdate(); 
+
       res.status(200).json(updatedProduct);
     } catch (error) {
       console.error("Error updating inventory:", error);
@@ -78,7 +110,7 @@ export const deleteStock = async (req: Request, res: Response): Promise<void> =>
     const { id } = req.params;
 
     await prisma.product.delete({ where: { id } });
-
+    await emitInventoryUpdate(); 
     res.status(200).json({ message: "Stock entry deleted successfully" });
   } catch (error) {
     console.error("Error deleting stock:", error);
@@ -94,6 +126,7 @@ export const getLowStockProducts = async (req: Request, res: Response) => {
       include: { warehouse: true },
     });
 
+    // await emitInventoryUpdate(); 
     res.status(200).json(lowStockProducts);
   } catch (error) {
     console.error("Error fetching low-stock products:", error);

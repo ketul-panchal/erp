@@ -32,7 +32,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import io from "socket.io-client";
 export default function DashboardPage() {
   const [user, setUser] = useState<{
     name: string;
@@ -40,6 +40,11 @@ export default function DashboardPage() {
     avatarUrl?: string;
   } | null>(null);
   const router = useRouter();
+  const [todaySales, setTodaySales] = useState({ totalOrders: 0, totalRevenue: 0 });
+  const [inventoryStats, setInventoryStats] = useState({
+    totalProducts: 0,
+    lowStockProducts: 0,
+  });
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -71,31 +76,103 @@ export default function DashboardPage() {
     fetchUser();
   }, []);
 
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return router.push("/login");
+  
+    // Fetch initial today's sales data
+    const fetchTodaySales = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/sales/today", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setTodaySales(data);
+        }
+      } catch (error) {
+        console.error("Error fetching today's sales:", error);
+      }
+    };
+  
+    fetchTodaySales();
+  
+    // Real-time updates using Socket.IO
+    const socket = io("http://localhost:5000", {
+      transports: ["websocket"],
+      withCredentials: true,
+    });
+  
+    socket.on("salesUpdate", (data) => {
+      console.log("📈 Real-time Sales Update:", data);
+      setTodaySales(data);
+    });
+  
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return router.push("/login");
+
+
+    const fetchInventoryStats = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/inventory/low-stock", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setInventoryStats(data);
+        }
+      } catch (error) {
+        console.error("Error fetching inventory stats:", error);
+      }
+    };
+
+    fetchInventoryStats();
+
+    const socket = io("http://localhost:5000", {
+      transports: ["websocket"],
+      withCredentials: true,
+      query: {
+        token,
+      },
+    });
+  
+    socket.on("inventoryUpdate", (data) => {
+      console.log("📡 Inventory Update:", data);
+      setInventoryStats(data);
+    });
+  
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+
   const metrics = [
     {
       title: "Total Orders",
-      value: "2,345",
+      value: todaySales?.totalOrders?.toString() || "0", // Default to "0" if undefined
       change: "+12.5%",
       icon: ShoppingCart,
       description: "Orders this month",
     },
-    {
-      title: "Inventory Stock",
-      value: "18,756",
-      change: "-2.3%",
-      icon: Package,
-      description: "Items in stock",
-    },
-    {
-      title: "Pending Shipments",
-      value: "156",
-      change: "+24.5%",
-      icon: TruckIcon,
-      description: "Awaiting shipment",
-    },
+    // {
+    //   title: "Inventory Stock",
+    //   value: inventoryStats?.lowStockProducts?.toString() || "0", // Default to "0" if undefined
+    //   change: "-2.3%",
+    //   icon: Package,
+    //   description: `Low stock: ${inventoryStats?.lowStockProducts || 0}`, // Default to 0 if undefined
+    // },
     {
       title: "Total Revenue",
-      value: "$345,897",
+      value: `$${(todaySales?.totalRevenue || 0).toFixed(2)}`, // Default to "0.00" if undefined
       change: "+8.2%",
       icon: DollarSign,
       description: "Current month",
@@ -162,12 +239,13 @@ export default function DashboardPage() {
       title: "View Reports",
       icon: BarChart3,
       color: "bg-amber-500 hover:bg-amber-600",
+      onClick: () => router.push("/dashboard/reports"),
     },
-    {
-      title: "Settings",
-      icon: Settings,
-      color: "bg-slate-500 hover:bg-slate-600",
-    },
+    // {
+    //   title: "Settings",
+    //   icon: Settings,
+    //   color: "bg-slate-500 hover:bg-slate-600",
+    // },
   ];
 
   return (

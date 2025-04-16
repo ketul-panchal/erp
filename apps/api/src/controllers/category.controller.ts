@@ -26,7 +26,7 @@ export async function getCategoryById(req: Request, res: Response): Promise<void
     const { id } = req.params;
     const category = await prisma.category.findUnique({
       where: { id },
-      include: { children: true, parent: true },
+      include: { children: true, parent: true,products: true },
     });
 
     if (!category) {
@@ -44,23 +44,42 @@ export async function getCategoryById(req: Request, res: Response): Promise<void
 /**
  * Create a new category.
  */
+// export async function createCategory(req: Request, res: Response): Promise<void> {
+//   try {
+//     const { name, parentId } = req.body;
+
+//     const existingCategory = await prisma.category.findUnique({
+//       where: { name },
+//     });
+
+//     if (existingCategory) {
+//       res.status(400).json({ error: "Category name already exists" });
+//       return;
+//     }
+
+//     const category = await prisma.category.create({
+//       data: {
+//         name,
+//         parent: parentId ? { connect: { id: parentId } } : undefined,
+//       },
+//     });
+
+//     res.status(201).json({ message: "Category created successfully", category });
+//   } catch (error) {
+//     console.error("Error creating category:", error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// }
+
 export async function createCategory(req: Request, res: Response): Promise<void> {
   try {
-    const { name, parentId } = req.body;
-
-    const existingCategory = await prisma.category.findUnique({
-      where: { name },
-    });
-
-    if (existingCategory) {
-      res.status(400).json({ error: "Category name already exists" });
-      return;
-    }
+    const { name, parentId, image } = req.body;
 
     const category = await prisma.category.create({
       data: {
         name,
         parent: parentId ? { connect: { id: parentId } } : undefined,
+        image, 
       },
     });
 
@@ -71,13 +90,14 @@ export async function createCategory(req: Request, res: Response): Promise<void>
   }
 }
 
+
 /**
  * Update an existing category.
  */
 export async function updateCategory(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const { name, parentId } = req.body;
+    const { name, parentId,image } = req.body;
 
     const existingCategory = await prisma.category.findUnique({ where: { id } });
     if (!existingCategory) {
@@ -90,6 +110,7 @@ export async function updateCategory(req: Request, res: Response): Promise<void>
       data: {
         name,
         parent: parentId ? { connect: { id: parentId } } : { disconnect: true },
+        image, 
       },
     });
 
@@ -121,3 +142,4 @@ export async function deleteCategory(req: Request, res: Response): Promise<void>
     res.status(500).json({ error: "Internal server error" });
   }
 }
+

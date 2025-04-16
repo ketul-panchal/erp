@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client"; 
+import { PrismaClient } from "@prisma/client";
 // Ensure Prisma is initialized
 
 const prisma = new PrismaClient();
@@ -7,21 +7,21 @@ const prisma = new PrismaClient();
 // export async function createProduct(req: Request, res: Response): Promise<void>  {
 //     try {
 //       const { name, description, sku, barcode, categoryId, brand, supplierId, price, costPrice, stock, stockAlert, warehouseId, images, status } = req.body;
-  
+
 //       if (!name || !sku || !price || !costPrice || !stock) {
 //         res.status(400).json({ message: "Missing required fields." });
 //         return;
 //       }
-  
+
 //       const productExists = await prisma.product.findFirst({
 //         where: { OR: [{ name }, { sku }] },
 //       });
-  
+
 //       if (productExists) {
 //         res.status(400).json({ message: "Product name or SKU already exists" });
 //         return;
 //       }
-  
+
 //       const product = await prisma.product.create({
 //         data: {
 //           name,
@@ -40,16 +40,16 @@ const prisma = new PrismaClient();
 //           status: status ?? "ACTIVE",
 //         },
 //       });
-  
+
 //       res.status(201).json({ message: "Product created successfully", product });
 //     } catch (error) {
 //       console.error("Error creating product:", error);
 //       res.status(500).json({ message: "Internal Server Error" });
 //     }
 //   }
-  
 
-export const createProduct = async (req: Request, res: Response) => {
+
+export const createProduct = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, description, sku, barcode, categoryId, brand, supplierId, price, costPrice, stock, stockAlert, warehouseId, images, status } = req.body;
 
@@ -60,7 +60,8 @@ export const createProduct = async (req: Request, res: Response) => {
       });
 
       if (!supplierExists) {
-        return res.status(400).json({ message: "Invalid supplierId: Supplier does not exist." });
+        res.status(400).json({ message: "Invalid supplierId: Supplier does not exist." });
+        return
       }
     }
 
@@ -71,7 +72,8 @@ export const createProduct = async (req: Request, res: Response) => {
       });
 
       if (!categoryExists) {
-        return res.status(400).json({ message: "Invalid categoryId: Category does not exist." });
+        res.status(400).json({ message: "Invalid categoryId: Category does not exist." });
+        return
       }
     }
 
@@ -82,7 +84,8 @@ export const createProduct = async (req: Request, res: Response) => {
       });
 
       if (!warehouseExists) {
-        return res.status(400).json({ message: "Invalid warehouseId: Warehouse does not exist." });
+        res.status(400).json({ message: "Invalid warehouseId: Warehouse does not exist." });
+        return;
       }
     }
 
@@ -106,10 +109,10 @@ export const createProduct = async (req: Request, res: Response) => {
       },
     });
 
-    return res.status(201).json(product);
+    res.status(201).json(product);
   } catch (error: any) {
     console.error("Error creating product:", error);
-    return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
 
@@ -117,7 +120,11 @@ export const createProduct = async (req: Request, res: Response) => {
 
 export async function getAllProducts(req: Request, res: Response) {
   try {
+
+    const { categoryId } = req.query; // Ensure the categoryId is fetched from the query
+    
     const products = await prisma.product.findMany({
+      where: { categoryId: categoryId as string },
       include: { category: true, supplier: true, warehouse: true },
     });
     res.json(products);
@@ -128,25 +135,25 @@ export async function getAllProducts(req: Request, res: Response) {
 }
 
 export async function getProduct(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      
-      const product = await prisma.product.findUnique({
-        where: { id },
-        include: { category: true }, // Example: Include category details if needed
-      });
-  
-      if (!product) {
-        res.status(404).json({ message: "Product not found" });
-        return;
-      }
-  
-      res.status(200).json(product ?? []);
-    } catch (error) {
-      console.error("Error fetching product:", error);
-      res.status(500).json({ message: "Internal Server Error" });
+  try {
+    const { id } = req.params;
+
+    const product = await prisma.product.findUnique({
+      where: { id },
+      include: { category: true }, // Example: Include category details if needed
+    });
+
+    if (!product) {
+      res.status(404).json({ message: "Product not found" });
+      return;
     }
+
+    res.status(200).json(product ?? []);
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
+}
 
 //   export async function updateProduct(req: Request, res: Response): Promise<void> {
 //     try {
@@ -155,7 +162,7 @@ export async function getProduct(req: Request, res: Response): Promise<void> {
 //         where: { id },
 //         data: req.body, // Update all fields dynamically
 //       });
-  
+
 //       res.status(200).json({ message: "Product updated successfully", product });
 //     } catch (error) {
 //       console.error("Error updating product:", error);
@@ -164,54 +171,118 @@ export async function getProduct(req: Request, res: Response): Promise<void> {
 //   }
 
 
-export async function updateProduct(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      const {
+// export async function updateProduct(req: Request, res: Response) {
+//     try {
+//       const { id } = req.params;
+//       const {
+//         name,
+//         description,
+//         sku,
+//         barcode,
+//         categoryId,
+//         brand,
+//         supplierId,
+//         price,
+//         costPrice,
+//         stock,
+//         stockAlert,
+//         warehouseId,
+//         images,
+//         status,
+//       } = req.body;
+
+//       const product = await prisma.product.update({
+//         where: { id },
+//         data: {
+//           name,
+//           description,
+//           sku,
+//           barcode,
+//           brand,
+//           price: parseFloat(price), // Ensure numeric values
+//           costPrice: parseFloat(costPrice),
+//           stock: parseInt(stock),
+//           stockAlert: parseInt(stockAlert),
+//           images,
+//           status,
+
+//           // Handle relations correctly
+//           category: categoryId ? { connect: { id: categoryId } } : undefined,
+//           supplier: supplierId ? { connect: { id: supplierId } } : undefined,
+//           warehouse: warehouseId ? { connect: { id: warehouseId } } : undefined,
+//         },
+//       });
+
+//       res.status(200).json({ message: "Product updated successfully", product });
+//     } catch (error) {
+//       console.error("Error updating product:", error);
+//       res.status(500).json({ error: "Internal server error" });
+//     }
+//   }
+
+
+export async function updateProduct(req: Request, res: Response): Promise<void> {
+  try {
+
+    // console.log("Incoming Update Request:");
+    // console.log("Params:", req.params);
+    // console.log("Body:", req.body);
+
+    const { id } = req.params;
+    const {
+      name,
+      description,
+      sku,
+      barcode,
+      categoryId,
+      brand,
+      supplierId,
+      price,
+      costPrice,
+      stock,
+      stockAlert,
+      warehouseId,
+      status,
+    } = req.body;
+
+
+    if (!name || !sku || !price || !costPrice || !stock) {
+      res.status(400).json({ message: "Required fields missing", });
+      return;
+    }
+
+    const product = await prisma.product.update({
+      where: { id },
+      data: {
         name,
         description,
         sku,
         barcode,
-        categoryId,
         brand,
-        supplierId,
-        price,
-        costPrice,
-        stock,
-        stockAlert,
-        warehouseId,
-        images,
+        price: parseFloat(price),
+        costPrice: parseFloat(costPrice),
+        stock: parseInt(stock, 10),
+        stockAlert: parseInt(stockAlert, 10) || 10,
         status,
-      } = req.body;
-  
-      const product = await prisma.product.update({
-        where: { id },
-        data: {
-          name,
-          description,
-          sku,
-          barcode,
-          brand,
-          price: parseFloat(price), // Ensure numeric values
-          costPrice: parseFloat(costPrice),
-          stock: parseInt(stock),
-          stockAlert: parseInt(stockAlert),
-          images,
-          status,
-  
-          // Handle relations correctly
-          category: categoryId ? { connect: { id: categoryId } } : undefined,
-          supplier: supplierId ? { connect: { id: supplierId } } : undefined,
-          warehouse: warehouseId ? { connect: { id: warehouseId } } : undefined,
-        },
-      });
-  
-      res.status(200).json({ message: "Product updated successfully", product });
-    } catch (error) {
-      console.error("Error updating product:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
+
+        category: categoryId ? { connect: { id: categoryId } } : undefined,
+        supplier: supplierId ? { connect: { id: supplierId } } : undefined,
+        warehouse: warehouseId ? { connect: { id: warehouseId } } : undefined,
+      },
+    });
+
+    res.status(200).json({ message: "Product updated successfully", product });
+  } catch (error: any) {
+    console.error("Error updating product:", error);
+    res.status(500).json({
+      message: "Internal Server Error",
+      error: error.message,
+      stack: error.stack,  
+    });
   }
+}
+
+
 
 export async function deleteProduct(req: Request, res: Response): Promise<void> {
   try {
@@ -223,5 +294,39 @@ export async function deleteProduct(req: Request, res: Response): Promise<void> 
   } catch (error) {
     console.error("Error deleting product:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+// Fetch products by category ID
+export async function getProductsByCategory(req: Request, res: Response): Promise<void> {
+  try {
+    const { categoryId } = req.query; // Get the categoryId from query parameters
+
+    if (!categoryId) {
+      res.status(400).json({ message: "Category ID is required" });
+      return;
+    }
+
+    // Fetch products that belong to the category
+    const products = await prisma.product.findMany({
+      where: {
+        categoryId: categoryId as string, // Cast to string
+      },
+      include: {
+        category: true,
+        supplier: true,
+        warehouse: true, // Include related information if necessary
+      },
+    });
+
+    if (products.length === 0) {
+      res.status(404).json({ message: "No products found for this category" });
+      return;
+    }
+
+    res.status(200).json(products); // Return the filtered products
+  } catch (error) {
+    console.error("Error fetching products by category:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 }

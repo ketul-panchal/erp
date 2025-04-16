@@ -242,6 +242,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import Image from "next/image";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -359,15 +360,18 @@ export default function ProductsPage() {
       const token = localStorage.getItem("token");
       const formData = new FormData();
       formData.append("name", editingProduct.name);
+      formData.append("description", editingProduct.description || "");
       formData.append("sku", editingProduct.sku);
-      formData.append("price", editingProduct.price);
-      formData.append("costPrice", editingProduct.costPrice);
+      formData.append("barcode", editingProduct.barcode || "0");
+      formData.append("brand", editingProduct.brand || "0");
+      formData.append("price", editingProduct.price || "0");
+      formData.append("costPrice", editingProduct.costPrice || "0");
       formData.append("stock", editingProduct.stock);
-      formData.append("stockAlert", editingProduct.stockAlert);
-      formData.append("categoryId", editingProduct.categoryId || "");
+      formData.append("stockAlert", editingProduct.stockAlert || "10");
+      formData.append("categoryId", editingProduct.categoryId);
       formData.append("supplierId", editingProduct.supplierId || "");
       formData.append("warehouseId", editingProduct.warehouseId || "");
-      formData.append("status", editingProduct.status);
+      formData.append("status", editingProduct.status || "ACTIVE");
       if (selectedImage) formData.append("image", selectedImage);
 
       const response = await fetch(
@@ -474,7 +478,7 @@ export default function ProductsPage() {
 
       {/* EDIT DIALOG: Open/close is controlled by isDialogOpen */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent  className="w-full h-full max-w-2xl sm:w-[95%] max-h-[90vh] overflow-y-auto p-4">
           <DialogHeader>
             <DialogTitle>Edit Product</DialogTitle>
             <DialogDescription>
@@ -483,156 +487,393 @@ export default function ProductsPage() {
           </DialogHeader>
 
           {editingProduct && (
-            <form onSubmit={handleUpdate}>
-              <div className="space-y-4 mt-4">
-                <Input
-                  type="text"
-                  placeholder="Name"
-                  value={editingProduct.name || ""}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      name: e.target.value,
-                    })
-                  }
-                />
-                <Input
-                  type="text"
-                  placeholder="SKU"
-                  value={editingProduct.sku || ""}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      sku: e.target.value,
-                    })
-                  }
-                />
-                <Input
-                  type="text"
-                  placeholder="Price"
-                  value={editingProduct.price || ""}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      price: e.target.value,
-                    })
-                  }
-                />
-                <Input
-                  type="text"
-                  placeholder="Cost Price"
-                  value={editingProduct.costPrice || ""}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      costPrice: e.target.value,
-                    })
-                  }
-                />
-                <Input
-                  type="text"
-                  placeholder="Stock"
-                  value={editingProduct.stock || ""}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      stock: e.target.value,
-                    })
-                  }
-                />
-                <Input
-                  type="text"
-                  placeholder="Stock Alert"
-                  value={editingProduct.stockAlert || ""}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      stockAlert: e.target.value,
-                    })
-                  }
-                />
+            //   <form onSubmit={handleUpdate}>
+            //   <div className="space-y-4 mt-4">
+            //     <Input
+            //       type="text"
+            //       placeholder="Product Name"
+            //       value={editingProduct.name || ""}
+            //       onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+            //       required
+            //     />
 
-                {/* Example for Category - you can adapt this to <Select> as you wish */}
-                <select
-                  value={editingProduct.categoryId || ""}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      categoryId: e.target.value,
-                    })
-                  }
-                  className="border rounded p-2 w-full"
-                >
-                  <option value="">Select Category</option>
-                  {categories.map((cat) => (
-                    <option value={cat.id} key={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
+            //     <Textarea
+            //       placeholder="Description"
+            //       value={editingProduct.description || ""}
+            //       onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
+            //     />
+
+            //     <Input
+            //       type="text"
+            //       placeholder="SKU"
+            //       value={editingProduct.sku || ""}
+            //       onChange={(e) => setEditingProduct({ ...editingProduct, sku: e.target.value })}
+            //       required
+            //     />
+
+            //     <Input
+            //       type="text"
+            //       placeholder="Barcode (Optional)"
+            //       value={editingProduct.barcode || ""}
+            //       onChange={(e) => setEditingProduct({ ...editingProduct, barcode: e.target.value })}
+            //     />
+
+            //     <Input
+            //       type="text"
+            //       placeholder="Brand"
+            //       value={editingProduct.brand || ""}
+            //       onChange={(e) => setEditingProduct({ ...editingProduct, brand: e.target.value })}
+            //     />
+
+            //     <Input
+            //       type="number"
+            //       placeholder="Price"
+            //       value={editingProduct.price || ""}
+            //       onChange={(e) => setEditingProduct({ ...editingProduct, price: e.target.value })}
+            //       required
+            //     />
+
+            //     <Input
+            //       type="number"
+            //       placeholder="Price"
+            //       value={editingProduct.price || ""}
+            //       onChange={(e) => setEditingProduct({ ...editingProduct, price: e.target.value })}
+            //       required
+            //     />
+
+            //     <Input
+            //       type="number"
+            //       placeholder="Cost Price"
+            //       value={editingProduct.costPrice || ""}
+            //       onChange={(e) => setEditingProduct({ ...editingProduct, costPrice: e.target.value })}
+            //       required
+            //     />
+
+            //     <Input
+            //       type="number"
+            //       placeholder="Stock"
+            //       value={editingProduct.stock || ""}
+            //       onChange={(e) => setEditingProduct({ ...editingProduct, stock: e.target.value })}
+            //       required
+            //     />
+
+            //     <Input
+            //       type="number"
+            //       placeholder="Stock Alert"
+            //       value={editingProduct.stockAlert || ""}
+            //       onChange={(e) => setEditingProduct({ ...editingProduct, stockAlert: e.target.value })}
+            //     />
+
+            //     {/* Category */}
+            //     <select
+            //       value={editingProduct.categoryId || ""}
+            //       onChange={(e) => setEditingProduct({ ...editingProduct, categoryId: e.target.value })}
+            //       className="border rounded p-2 w-full"
+            //       required
+            //     >
+            //       <option value="">Select Category</option>
+            //       {categories.map((cat) => (
+            //         <option key={cat.id} value={cat.id}>{cat.name}</option>
+            //       ))}
+            //     </select>
+
+            //     {/* Supplier */}
+            //     <select
+            //       value={editingProduct.supplierId || ""}
+            //       onChange={(e) => setEditingProduct({ ...editingProduct, supplierId: e.target.value })}
+            //       className="border rounded p-2 w-full"
+            //     >
+            //       <option value="">Select Supplier</option>
+            //       {suppliers.map((sup) => (
+            //         <option key={sup.id} value={sup.id}>{sup.name}</option>
+            //       ))}
+            //     </select>
+
+            //     {/* Warehouse */}
+            //     <select
+            //       value={editingProduct.warehouseId || ""}
+            //       onChange={(e) => setEditingProduct({ ...editingProduct, warehouseId: e.target.value })}
+            //       className="border rounded p-2 w-full"
+            //     >
+            //       <option value="">Select Warehouse</option>
+            //       {warehouses.map((wh) => (
+            //         <option key={wh.id} value={wh.id}>{wh.name}</option>
+            //       ))}
+            //     </select>
+
+            //     {/* Status */}
+            //     <select
+            //       value={editingProduct.status || "ACTIVE"}
+            //       onChange={(e) => setEditingProduct({ ...editingProduct, status: e.target.value })}
+            //       className="border rounded p-2 w-full"
+            //     >
+            //       <option value="ACTIVE">Active</option>
+            //       <option value="INACTIVE">Inactive</option>
+            //     </select>
+
+            //     {/* Image Upload */}
+            //     <Input
+            //       type="file"
+            //       onChange={(e) => setSelectedImage(e.target.files ? e.target.files[0] : null)}
+            //     />
+            //   </div>
+
+            //   <DialogFooter className="mt-4">
+            //     <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+            //     <Button type="submit">Update</Button>
+            //   </DialogFooter>
+            // </form>
+
+            <form onSubmit={handleUpdate}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                {/* Product Name */}
+                <div>
+                  <label className="font-medium">Product Name</label>
+                  <Input
+                    type="text"
+                    placeholder="Product Name"
+                    value={editingProduct.name || ""}
+                    onChange={(e) =>
+                      setEditingProduct({
+                        ...editingProduct,
+                        name: e.target.value,
+                      })
+                    }
+                    required
+                  />
+                </div>
+
+                {/* SKU */}
+                <div>
+                  <label className="font-medium">SKU</label>
+                  <Input
+                    type="text"
+                    placeholder="SKU"
+                    value={editingProduct.sku || ""}
+                    onChange={(e) =>
+                      setEditingProduct({
+                        ...editingProduct,
+                        sku: e.target.value,
+                      })
+                    }
+                    required
+                  />
+                </div>
+
+                {/* Price */}
+                <div>
+                  <label className="font-medium">Price</label>
+                  <Input
+                    type="number"
+                    placeholder="Price"
+                    value={editingProduct.price || ""}
+                    onChange={(e) =>
+                      setEditingProduct({
+                        ...editingProduct,
+                        price: e.target.value,
+                      })
+                    }
+                    required
+                  />
+                </div>
+
+                {/* Cost Price */}
+                <div>
+                  <label className="font-medium">Cost Price</label>
+                  <Input
+                    type="number"
+                    placeholder="Cost Price"
+                    value={editingProduct.costPrice || ""}
+                    onChange={(e) =>
+                      setEditingProduct({
+                        ...editingProduct,
+                        costPrice: e.target.value,
+                      })
+                    }
+                    required
+                  />
+                </div>
+
+                {/* Stock */}
+                <div>
+                  <label className="font-medium">Stock</label>
+                  <Input
+                    type="number"
+                    placeholder="Stock"
+                    value={editingProduct.stock || ""}
+                    onChange={(e) =>
+                      setEditingProduct({
+                        ...editingProduct,
+                        stock: e.target.value,
+                      })
+                    }
+                    required
+                  />
+                </div>
+
+                {/* Stock Alert */}
+                <div>
+                  <label className="font-medium">Stock Alert</label>
+                  <Input
+                    type="number"
+                    placeholder="Stock Alert"
+                    value={editingProduct.stockAlert || ""}
+                    onChange={(e) =>
+                      setEditingProduct({
+                        ...editingProduct,
+                        stockAlert: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                {/* Barcode */}
+                <div>
+                  <label className="font-medium">Barcode</label>
+                  <Input
+                    type="text"
+                    placeholder="Barcode"
+                    value={editingProduct.barcode || ""}
+                    onChange={(e) =>
+                      setEditingProduct({
+                        ...editingProduct,
+                        barcode: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                {/* Brand */}
+                <div>
+                  <label className="font-medium">Brand</label>
+                  <Input
+                    type="text"
+                    placeholder="Brand"
+                    value={editingProduct.brand || ""}
+                    onChange={(e) =>
+                      setEditingProduct({
+                        ...editingProduct,
+                        brand: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                {/* Category */}
+                <div className="md:col-span-1">
+                  <label className="font-medium">Category</label>
+                  <select
+                    value={editingProduct.categoryId || ""}
+                    onChange={(e) =>
+                      setEditingProduct({
+                        ...editingProduct,
+                        categoryId: e.target.value,
+                      })
+                    }
+                    className="border rounded p-2 w-full"
+                    required
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 {/* Supplier */}
-                <select
-                  value={editingProduct.supplierId || ""}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      supplierId: e.target.value,
-                    })
-                  }
-                  className="border rounded p-2 w-full"
-                >
-                  <option value="">Select Supplier</option>
-                  {suppliers.map((sup) => (
-                    <option value={sup.id} key={sup.id}>
-                      {sup.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="md:col-span-1">
+                  <label className="font-medium">Supplier</label>
+                  <select
+                    value={editingProduct.supplierId || ""}
+                    onChange={(e) =>
+                      setEditingProduct({
+                        ...editingProduct,
+                        supplierId: e.target.value,
+                      })
+                    }
+                    className="border rounded p-2 w-full"
+                  >
+                    <option value="">Select Supplier</option>
+                    {suppliers.map((sup) => (
+                      <option key={sup.id} value={sup.id}>
+                        {sup.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 {/* Warehouse */}
-                <select
-                  value={editingProduct.warehouseId || ""}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      warehouseId: e.target.value,
-                    })
-                  }
-                  className="border rounded p-2 w-full"
-                >
-                  <option value="">Select Warehouse</option>
-                  {warehouses.map((wh) => (
-                    <option value={wh.id} key={wh.id}>
-                      {wh.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="md:col-span-1">
+                  <label className="font-medium">Warehouse</label>
+                  <select
+                    value={editingProduct.warehouseId || ""}
+                    onChange={(e) =>
+                      setEditingProduct({
+                        ...editingProduct,
+                        warehouseId: e.target.value,
+                      })
+                    }
+                    className="border rounded p-2 w-full"
+                  >
+                    <option value="">Select Warehouse</option>
+                    {warehouses.map((wh) => (
+                      <option key={wh.id} value={wh.id}>
+                        {wh.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 {/* Status */}
-                <select
-                  value={editingProduct.status || ""}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      status: e.target.value,
-                    })
-                  }
-                  className="border rounded p-2 w-full"
-                >
-                  <option value="ACTIVE">Active</option>
-                  <option value="INACTIVE">Inactive</option>
-                </select>
+                <div className="md:col-span-1">
+                  <label className="font-medium">Status</label>
+                  <select
+                    value={editingProduct.status || "ACTIVE"}
+                    onChange={(e) =>
+                      setEditingProduct({
+                        ...editingProduct,
+                        status: e.target.value,
+                      })
+                    }
+                    className="border rounded p-2 w-full"
+                  >
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                  </select>
+                </div>
+
+                {/* Description */}
+                <div className="md:col-span-2">
+                  <label className="font-medium">Description</label>
+                  <Textarea
+                    placeholder="Description"
+                    value={editingProduct.description || ""}
+                    onChange={(e) =>
+                      setEditingProduct({
+                        ...editingProduct,
+                        description: e.target.value,
+                      })
+                    }
+                  />
+                </div>
 
                 {/* Image Upload */}
-                <Input
-                  type="file"
-                  onChange={(e) =>
-                    setSelectedImage(e.target.files ? e.target.files[0] : null)
-                  }
-                />
+                <div className="md:col-span-2">
+                  <label className="font-medium">Upload Image</label>
+                  <Input
+                    type="file"
+                    onChange={(e) =>
+                      setSelectedImage(
+                        e.target.files ? e.target.files[0] : null
+                      )
+                    }
+                  />
+                </div>
               </div>
-              <DialogFooter className="mt-4">
+
+              <DialogFooter className="mt-6">
                 <Button
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}

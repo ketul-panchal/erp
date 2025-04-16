@@ -31,4 +31,16 @@ router.post("/", upload.array("images", 5), (req: Request, res: Response) => {
   return res.json(fileUrls);
 });
 
+
+
+router.post("/categories", upload.single("image"), async (req: Request, res: Response): Promise<void> => {
+  if (!req.file) {
+    res.status(400).json({ message: "No file uploaded" });
+    return
+  }
+
+  const imageUrl = `/uploads/${req.file.filename}`;
+  res.json({ imageUrl });
+});
+
 export default router;

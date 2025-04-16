@@ -3,6 +3,7 @@ import { Server } from "socket.io";
 import { app, sessionMiddleware } from "./app";
 import dotenv from "dotenv";
 import { initSalesSocket } from "./controllers/sales.controller";
+import { initInventorySocket } from "./controllers/inventory.controller";
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ io.use((socket, next) => {
 });
 
 initSalesSocket(io);
+initInventorySocket(io);  
 
 // WebSocket Events
 io.on("connection", (socket) => {

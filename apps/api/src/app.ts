@@ -46,7 +46,7 @@ const sessionMiddleware = session({
 // app.use(cors({ origin: "*", credentials: true }));
 
 app.use(cors({
-    origin: "http://localhost:3000", 
+    origin: ["http://localhost:3000","http://localhost:3001"], 
     credentials: true 
   }));
 // app.use(helmet());
@@ -65,6 +65,7 @@ app.use(
             "data:",      
             "http://localhost:3000",  
             "http://localhost:5000", 
+            "http://localhost:3001"
           ],
         },
       },

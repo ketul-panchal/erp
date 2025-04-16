@@ -25,6 +25,7 @@ import {
   Clock,
   CheckCircle,
   X,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +55,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useRef } from "react";
+import CustomerForm from "../dashboard/customers/customer-form";
 
 export default function POSSystem() {
   // State management
@@ -95,7 +97,6 @@ export default function POSSystem() {
     fetchUser();
     fetchSalesData();
 
-
     const socket = io("http://localhost:5000", {
       transports: ["websocket"],
       withCredentials: true,
@@ -114,7 +115,6 @@ export default function POSSystem() {
     return () => {
       socket.disconnect();
     };
-
   }, []);
 
   const fetchUser = async () => {
@@ -147,7 +147,6 @@ export default function POSSystem() {
       });
     }
   };
-
 
   const fetchProducts = async () => {
     try {
@@ -195,14 +194,14 @@ export default function POSSystem() {
         const data = await response.json();
 
         const formattedCategories = data.map((cat: any) => ({
-          id: cat.id || cat._id, 
+          id: cat.id || cat._id,
           name: cat.name,
         }));
 
         setCategories([
           { id: "all", name: "All Products" },
           ...formattedCategories,
-        ]); 
+        ]);
       } else {
         toast.error("Failed to fetch categories.");
       }
@@ -401,19 +400,19 @@ export default function POSSystem() {
       toast.error("Cart is empty. Please add items.");
       return;
     }
-  
+
     if (!selectedCustomer) {
       toast.error("Please select a customer.");
       return;
     }
-  
+
     try {
       const token = localStorage.getItem("token");
       if (!token) {
         router.push("/login");
         return;
       }
-  
+
       const orderData = {
         customerId: selectedCustomer.id,
         items: cart.map((item) => ({
@@ -424,7 +423,7 @@ export default function POSSystem() {
         totalAmount: total.toFixed(2),
         paymentMethod,
       };
-  
+
       const response = await fetch("http://localhost:5000/api/orders", {
         method: "POST",
         headers: {
@@ -433,11 +432,11 @@ export default function POSSystem() {
         },
         body: JSON.stringify(orderData),
       });
-  
+
       if (response.ok) {
         const savedOrder = await response.json();
         toast.success("Order placed successfully!");
-  
+
         // ✅ Set Order Summary for Invoice
         setOrderSummary({
           customer: selectedCustomer,
@@ -446,9 +445,9 @@ export default function POSSystem() {
           orderId: savedOrder.orderNumber,
           orderDate: new Date().toLocaleString(),
         });
-  
+
         setShowInvoice(true); // ✅ Show Invoice
-  
+
         // ✅ Reset Cart, Selected Customer, and Payment Method for New Order
         setTimeout(() => {
           setCart([]); // ✅ Clear Cart
@@ -459,7 +458,6 @@ export default function POSSystem() {
           setCouponCode(""); // ✅ Reset Coupon Code
           setPaymentStatus("PENDING"); // ✅ Reset Payment Status
         }, 500);
-  
       } else {
         const errorData = await response.json();
         toast.error(errorData.message || "Failed to place order.");
@@ -469,7 +467,6 @@ export default function POSSystem() {
       toast.error("Error submitting order.");
     }
   };
-  
 
   const handlePrintReceipt = () => {
     if (printRef.current) {
@@ -732,30 +729,40 @@ export default function POSSystem() {
           </div>
         </header> */}
 
-<header className="h-16 border-b bg-white flex items-center px-6 justify-between">
-  <div className="flex items-center">
-    <h2 className="text-xl font-semibold">Point of Sale</h2>
-    <Badge variant="outline" className="ml-4 px-2 py-1">
-      <Clock className="w-3 h-3 mr-1" />
-      {new Date().toLocaleDateString()}
-    </Badge>
-  </div>
-  <div className="flex items-center gap-4">
-    <Badge variant="secondary">
-      <CheckCircle className="w-4 h-4 mr-1" />
-      {todaySales.count || 0} Sales Today
-    </Badge>
-    <Badge variant="secondary">
-      <DollarSign className="w-4 h-4 mr-1" />
-      ${Number(todaySales.revenue || 0).toFixed(2)} Revenue
-    </Badge>
-    <Avatar>
-      <AvatarImage src={user?.avatarUrl || "/placeholder.svg"} alt={user?.name} />
-      <AvatarFallback>{user?.name?.[0] || "U"}</AvatarFallback>
-    </Avatar>
-  </div>
-</header>
-
+        <header className="h-16 border-b bg-white flex items-center px-6 justify-between">
+          <div className="flex items-center">
+          <Button
+            variant="ghost"
+            className="text-muted-foreground hover:text-primary p-0"
+            onClick={() => router.push("/dashboard")}
+            aria-label="Back to Dashboard"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+            <h2 className="text-xl font-semibold">Point of Sale</h2>
+            <Badge variant="outline" className="ml-4 px-2 py-1">
+              <Clock className="w-3 h-3 mr-1" />
+              {new Date().toLocaleDateString()}
+            </Badge>
+          </div>
+          <div className="flex items-center gap-4">
+            <Badge variant="secondary">
+              <CheckCircle className="w-4 h-4 mr-1" />
+              {todaySales.count || 0} Sales Today
+            </Badge>
+            <Badge variant="secondary">
+              <DollarSign className="w-4 h-4 mr-1" />$
+              {Number(todaySales.revenue || 0).toFixed(2)} Revenue
+            </Badge>
+            <Avatar>
+              <AvatarImage
+                src={user?.avatarUrl || "/placeholder.svg"}
+                alt={user?.name}
+              />
+              <AvatarFallback>{user?.name?.[0] || "U"}</AvatarFallback>
+            </Avatar>
+          </div>
+        </header>
 
         {/* Main Content */}
         <div className="flex-1 flex overflow-hidden">
@@ -961,7 +968,12 @@ export default function POSSystem() {
                     ))}
                   </SelectContent>
                 </Select>
-                <Button variant="outline">New</Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowNewCustomerDialog(true)}
+                >
+                  New
+                </Button>
               </div>
 
               {selectedCustomer && (
@@ -1179,7 +1191,7 @@ export default function POSSystem() {
       </div>
 
       {/* New Customer Dialog */}
-      <Dialog
+      {/* <Dialog
         open={showNewCustomerDialog}
         onOpenChange={setShowNewCustomerDialog}
       >
@@ -1218,7 +1230,7 @@ export default function POSSystem() {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
 
       {/* Invoice Dialog */}
 
@@ -1390,6 +1402,12 @@ export default function POSSystem() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CustomerForm
+        isOpen={showNewCustomerDialog}
+        setIsOpen={setShowNewCustomerDialog}
+        fetchCustomers={fetchCustomers}
+      />
     </div>
   );
 }
